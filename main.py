@@ -1,36 +1,61 @@
+import os
+from dotenv import load_dotenv
 import discord
 from discord.ext import commands
-import json
-import os
 
-# Get configuration.json
-with open("configuration.json", "r") as config: 
-	data = json.load(config)
-	token = data["token"]
-	prefix = data["prefix"]
-	owner_id = data["owner_id"]
+# Import your loot module and its functions here:
+from modules.loot import generate_loot
 
+load_dotenv()
 
-class Greetings(commands.Cog):
-	def __init__(self, bot):
-		self.bot = bot
-		self._last_member = None
-
-# Intents
 intents = discord.Intents.default()
-# The bot
-bot = commands.Bot(prefix, intents = intents, owner_id = owner_id)
+intents.messages = True
 
-# Load cogs
-if __name__ == '__main__':
-	for filename in os.listdir("Cogs"):
-		if filename.endswith(".py"):
-			bot.load_extension(f"Cogs.{filename[:-3]}")
+bot = commands.Bot(command_prefix='!', intents=intents)
+
 
 @bot.event
 async def on_ready():
-	print(f"We have logged in as {bot.user}")
-	print(discord.__version__)
-	await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name =f"{bot.command_prefix}help"))
+    print(f'{bot.user} has connected!')
 
-bot.run(token)
+@bot.command(name='hello')
+async def hello(ctx):
+    await ctx.send('Hello!')
+
+# Add a new command to interact with the looting system:
+@bot.command(name='loot')
+async def get_looted_items(ctx):
+    message = await ctx.send('How many items were found?')
+
+    try:
+        # Wait for user's response.
+        msg = await bot.wait_for(
+            'message',
+            check=lambda message: message.author == ctx.author,
+            timeout=30  # Timeout after 30 seconds if no reply is received.
+        )
+
+        # Parse and validate user input as an integer.
+        num_players = int(msg.content)
+
+        if num_players < 1:
+            raise ValueError("Invalid number of items")
+
+        items_list = []
+
+        for _ in range(num_players):
+            item = generate_loot()
+            items_list.append(item)
+
+        looted_items_str = ', '.join(items_list)
+
+        await ctx.send(f'Your party found: {looted_items_str}')
+
+    except ValueError as e:
+        await ctx.send(str(e))
+    except Exception as e:
+        await ctx.send(f"Error: {str(e)}")
+
+TOKEN = os.getenv('DISCORD_TOKEN')
+
+bot.run(TOKEN)
