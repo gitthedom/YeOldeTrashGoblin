@@ -1,17 +1,22 @@
 import random
 import discord
+from Database.database_handler import DatabaseHandler
 
 
 def generate_loot(number_of_items, encounter_rank):
+    handler = DatabaseHandler()
+
     # Define possible loot items
-    common_loot_table = [
+    common_loot_table_old = [
         'Potion of climbing',
         'Potion of healing',
         'Spell scroll (1st level)',
         'Spell scroll (cantrip)'
     ]
 
-    uncommon_loot_table = [
+    common_loot_table = result_set = handler.fetch_data('game_items', ['name'], 'rarity=?', ("common",))
+
+    uncommon_loot_table_old = [
         'Adamantine armor',
         'Alchemy jug',
         'Ammunition +1',
@@ -110,7 +115,9 @@ def generate_loot(number_of_items, encounter_rank):
         'Winged boots'
     ]
 
-    rare_loot_table = [
+    uncommon_loot_table = result_set = handler.fetch_data('game_items', ['name'], 'rarity=?', ("common",))
+
+    rare_loot_table_old = [
         'Ammunition +2',
         'Amulet of health',
         'Armor +1',
@@ -224,7 +231,9 @@ def generate_loot(number_of_items, encounter_rank):
         'Wings of flying'
     ]
 
-    very_rare_loot_table = [
+    rare_loot_table = result_set = handler.fetch_data('game_items', ['name'], 'rarity=?', ("common",))
+
+    very_rare_loot_table_old = [
         'Ammunition +3',
         'Amulet of the planes',
         'Animated shield',
@@ -301,7 +310,9 @@ def generate_loot(number_of_items, encounter_rank):
         'Weapon +3'
     ]
 
-    legendary_loot_table = [
+    very_rare_loot_table = result_set = handler.fetch_data('game_items', ['name'], 'rarity=?', ("common",))
+
+    legendary_loot_table_old = [
         'Apparatus of Kwalish',
         'Armor +3',
         'Armor of invulnerability',
@@ -350,6 +361,8 @@ def generate_loot(number_of_items, encounter_rank):
         'Well of many worlds'
         'Whelm'
     ]
+
+    legendary_loot_table = result_set = handler.fetch_data('game_items', ['name'], 'rarity=?', ("common",))
 
     weighted_rank_table = {
         1: [(common_loot_table, 0.6), (uncommon_loot_table, 0.4)],
