@@ -13,49 +13,61 @@ intents.messages = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+TOKEN = os.getenv('DISCORD_TOKEN')
+
 
 @bot.event
 async def on_ready():
+    print(f'{TOKEN}')
     print(f'{bot.user} has connected!')
+
 
 @bot.command(name='hello')
 async def hello(ctx):
     await ctx.send('Hello!')
 
+
 # Add a new command to interact with the looting system:
 @bot.command(name='loot')
-async def get_looted_items(ctx):
-    message = await ctx.send('How many items were found?')
+async def get_looted_items(ctx: commands.Context):
+    await ctx.send('How many items were found?')
 
     try:
         # Wait for user's response.
-        msg = await bot.wait_for(
+        msg_items = await bot.wait_for(
+            'message',
+            check=lambda message: message.author == ctx.author,
+            timeout=30  # Timeout after 30 seconds if no reply is received.
+        )
+
+        await ctx.send('What was the rank of the encounter?')
+
+        msg_rank = await bot.wait_for(
             'message',
             check=lambda message: message.author == ctx.author,
             timeout=30  # Timeout after 30 seconds if no reply is received.
         )
 
         # Parse and validate user input as an integer.
-        num_players = int(msg.content)
+        num_items = int(msg_items.content)
+        num_rank = int(msg_rank.content)
 
-        if num_players < 1:
+        if num_items < 1:
+            raise ValueError("Invalid number of items")
+
+        if num_rank < 1:
             raise ValueError("Invalid number of items")
 
         items_list = []
 
-        for _ in range(num_players):
-            item = generate_loot()
-            items_list.append(item)
+        items = generate_loot(num_items, num_rank)
 
-        looted_items_str = ', '.join(items_list)
-
-        await ctx.send(f'Your party found: {looted_items_str}')
+        await ctx.send(embed=items)
 
     except ValueError as e:
         await ctx.send(str(e))
     except Exception as e:
         await ctx.send(f"Error: {str(e)}")
 
-TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot.run(TOKEN)
