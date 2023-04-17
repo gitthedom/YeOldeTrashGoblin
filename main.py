@@ -18,7 +18,6 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 @bot.event
 async def on_ready():
-    print(f'{TOKEN}')
     print(f'{bot.user} has connected!')
 
 
